@@ -7,10 +7,9 @@ description: Work on mingjian (this repo) — replay-verified audit for determin
 
 明鑒 "bright mirror" — replay-verified audit on Rusty. Pure Lisp, zero new
 interpreter code. Third app in the line: wuwei gates agents, shouzhong proves
-plants, mingjian proves what actually happened. **LOCAL-ONLY until the owner
-reviews it (built 2026-07-11 while owner slept) — do not create a GitHub repo
-or push without being asked. Name is Claude's coinage; confirm before any
-publish.**
+plants, mingjian proves what actually happened. Public at
+github.com/TheLakeMan/mingjian (name approved by owner 2026-07-11); pushing
+still requires the usual ask-first rule.
 
 ## Architecture
 
