@@ -61,6 +61,26 @@ cargo install --git https://github.com/TheLakeMan/rusty --bin rusty --root ~/.lo
 ./run_tests.sh
 ```
 
+### Receipt — score a sandbox audit (offline, no LLM)
+
+Pairs with [wuwei](https://github.com/TheLakeMan/wuwei)'s agent-sandbox story:
+
+```bash
+rusty demo-receipt.lisp
+```
+
+Loads `../wuwei/fixtures/sandbox-audit.json` when a sibling wuwei checkout
+exists; otherwise uses the same rows embedded. You should see:
+
+| Check | Result |
+|-------|--------|
+| Verdict counts | 1 ok (in-box), 2 rejected (path escapes) |
+| `mj-breaches` vs sandbox policy | **empty** — no jailbreak shown |
+| Forged extra `ok` on `/etc/shadow` | **non-empty** smoking-gun list |
+
+From wuwei (with this repo next door): `rusty demo-receipt.lisp` there writes
+the fixture and scores it in-process by loading `mingjian.lisp`.
+
 ## API
 
 | function | what |
@@ -79,6 +99,13 @@ Works out of the box with shouzhong's plants (pure `world-step`s and gated
 command buses are exactly what replay verification wants) and wuwei's audit
 rows. The golden test vendors a small thermostat plant so this repo stands
 alone.
+
+| file | what |
+|------|------|
+| `mingjian.lisp` | library — replay verify + agent audit rules |
+| `mingjian-test.lisp` / `expected_mingjian.txt` | golden suite |
+| `demo-receipt.lisp` | **sandbox audit receipt** (no LLM) |
+| `run_tests.sh` | golden-file runner |
 
 ## License
 

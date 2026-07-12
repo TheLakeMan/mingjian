@@ -28,6 +28,10 @@ still requires the usual ask-first rule.
   `./run_tests.sh`. Vendors the integer thermostat plant (keep worlds
   integer — determinism is the whole product). After changes:
   `rusty mingjian-test.lisp > expected_mingjian.txt`, rerun, diff.
+- `demo-receipt.lisp` — offline sandbox-audit receipt (NO LLM, not golden).
+  Loads `../wuwei/fixtures/sandbox-audit.json` when present, else embedded
+  rows; shows `mj-breaches` empty then forged smoking gun. Pairs with wuwei
+  (agent sandbox → receipt).
 
 ## Gotchas
 
