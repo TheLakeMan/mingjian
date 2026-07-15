@@ -54,10 +54,12 @@ step 6 touch" are one `kg-query` away — across runs, exportable as N-Triples.
 ## Quickstart
 
 ```bash
-# 1. Install Rusty (https://github.com/TheLakeMan/rusty)
-cargo install --git https://github.com/TheLakeMan/rusty --bin rusty --root ~/.local
+# 1. Install Rusty (prebuilt Linux binary — no rustc needed)
+curl -fsSL https://raw.githubusercontent.com/TheLakeMan/rusty/main/install.sh | sh
+# (or, any platform with Rust: cargo install rusty-lisp)
 
-# 2. Run the proof suite — deterministic, no LLM
+# 2. Clone and run the proof suite — deterministic, no LLM
+git clone https://github.com/TheLakeMan/mingjian && cd mingjian
 ./run_tests.sh
 ```
 
