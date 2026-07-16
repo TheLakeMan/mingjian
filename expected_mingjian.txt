@@ -31,4 +31,11 @@
 20 so the composite refuses to verify it  => broken
 21 a vanished log is named, not ignored   => (missing file "/tmp/mingjian-anchor-test.json")
 
+── two runs, one question: where did behaviour first change? ──
+22 a run against itself                   => identical
+23 trajectories first differ at tick      => 3
+24 ...but mj-diff names the CAUSE         => (diverged tick 2 action a 1 b 3)
+25 a different starting state             => (diverged start a (15) b (16))
+26 a run that stopped early               => (diverged tick 5 action a 1 b nothing)
+
 mingjian-test: done

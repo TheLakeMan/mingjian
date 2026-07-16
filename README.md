@@ -67,6 +67,22 @@ is no location mingjian could pick that would be safer than the log's own
 directory, so it deliberately picks none. The hash is the easy half; keeping it
 out of reach is the half that actually costs you something.
 
+## Two runs: where did behaviour first change?
+
+`mj-diff` is regression detection for a deterministic plant. Change a controller,
+re-run, and it names the tick — not "they differ":
+
+```
+23 trajectories first differ at tick      => 3
+24 ...but mj-diff names the CAUSE         => (diverged tick 2 action a 1 b 3)
+```
+
+An action divergence *causes* the state divergence at the next tick, so `mj-diff`
+reports the action first: the cause, not the symptom one tick later. Actions can
+also diverge while the trajectory does **not** (two commands with the same
+effect) — that is a real behavioural change, and it is reported rather than
+hidden by matching states.
+
 ## The battle-test rule, mechanized
 
 wuwei's jailbreak challenge says: *a real break must show a tool call with an
@@ -124,6 +140,7 @@ the fixture and scores it in-process by loading `mingjian.lisp`.
 | `mj-verify step s0 acts final` | `'verified` or `(diverged final claimed … replayed …)` |
 | `mj-verify-trajectory step s0 acts traj` | `'verified` or first divergent tick, named |
 | `mj-verify-run step run` | whole stored record against itself |
+| `mj-diff a b` | two runs → `'identical` or the first divergent tick, cause named |
 | `mj-save` / `mj-load` | lossless round-trip via Rusty's versioned-JSON `save-model` |
 | `mj-anchor file` | SHA-256 of a saved run — keep it somewhere they can't rewrite |
 | `mj-check-anchor file anchor` | `'anchored` / `(broken …)` / `(missing …)` |

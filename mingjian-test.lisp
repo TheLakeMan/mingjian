@@ -108,4 +108,24 @@
 (row "21 a vanished log is named, not ignored  " (mj-check-anchor LOG ANCHOR))
 
 (println "")
+(println "── two runs, one question: where did behaviour first change? ──")
+;; Same plant, a controller changed in one place: it now holds until 20, not 19.
+(define (controller-v2 s)
+  (let ((t (car s)))
+    (cond ((< t 20) 3) ((<= t 23) 1) (else 0))))
+(define RUN-V2 (mj-run world-step controller-v2 '(15) 8))
+(row "22 a run against itself                  " (mj-diff RUN RUN))
+;; NB the trajectories don't part until tick 3 ((19) vs (21)) — but the ACTION
+;; at tick 2 is where they actually diverge (1 vs 3). mj-diff names the cause,
+;; not the symptom one tick later.
+(row "23 trajectories first differ at tick     "
+     (let loop ((k 0))
+       (cond ((>= k (length (mj-trajectory RUN))) 'never)
+             ((not (equal? (nth (mj-trajectory RUN) k) (nth (mj-trajectory RUN-V2) k))) k)
+             (else (loop (+ k 1))))))
+(row "24 ...but mj-diff names the CAUSE        " (mj-diff RUN RUN-V2))
+(row "25 a different starting state            " (mj-diff RUN (mj-run world-step controller '(16) 8)))
+(row "26 a run that stopped early              " (mj-diff RUN (mj-run world-step controller '(15) 5)))
+
+(println "")
 (println "mingjian-test: done")

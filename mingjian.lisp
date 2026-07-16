@@ -79,6 +79,45 @@
         (mj-verify world-step (mj-s0 run) (mj-actions run) (mj-final run))
         t)))
 
+;; ── Diffing two runs ────────────────────────────────────────────────────
+;; Regression detection for a deterministic plant: change a controller (or the
+;; world model), re-run, and ask where behaviour FIRST changed. Same discipline
+;; as mj-verify-trajectory — name the tick; "they differ" is not an answer you
+;; can act on.
+;;
+;; Tick k is the state after k commands (tick 0 is s0); action k is the command
+;; taken AT tick k. An action divergence is reported BEFORE the state divergence
+;; it causes — the action is the cause, the next state is the symptom, and a
+;; diff that named the symptom would send you looking one tick too late.
+;; Actions can also diverge while the trajectory does NOT (two different commands
+;; with the same effect); that is a real behavioural change and it is reported,
+;; not hidden by matching states.
+(define (mj-nth-or lst i dflt)
+  (if (< i (length lst)) (nth lst i) dflt))
+
+;; 'identical | (diverged tick k action a <x> b <y>)
+;;            | (diverged tick k state  a <x> b <y>)
+;;            | (diverged start a <x> b <y>) | (diverged final a <x> b <y>)
+(define (mj-diff a b)
+  (if (not (equal? (mj-s0 a) (mj-s0 b)))
+      (list 'diverged 'start 'a (mj-s0 a) 'b (mj-s0 b))
+      (let* ((aa (mj-actions a)) (ab (mj-actions b))
+             (ta (mj-trajectory a)) (tb (mj-trajectory b))
+             (n  (max (length aa) (length ab))))
+        (let loop ((k 0))
+          (if (>= k n)
+              (if (equal? (mj-final a) (mj-final b))
+                  'identical
+                  (list 'diverged 'final 'a (mj-final a) 'b (mj-final b)))
+              (let ((xa (mj-nth-or aa k 'nothing)) (xb (mj-nth-or ab k 'nothing)))
+                (if (not (equal? xa xb))
+                    (list 'diverged 'tick k 'action 'a xa 'b xb)
+                    (let ((sa (mj-nth-or ta (+ k 1) 'nothing))
+                          (sb (mj-nth-or tb (+ k 1) 'nothing)))
+                      (if (not (equal? sa sb))
+                          (list 'diverged 'tick (+ k 1) 'state 'a sa 'b sb)
+                          (loop (+ k 1)))))))))))
+
 ;; ── Persistence (versioned JSON via save-model — lossless round-trip) ──
 (define (mj-save file run) (save-model file run))
 (define (mj-load file)     (load-model file))
