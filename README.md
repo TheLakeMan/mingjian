@@ -131,6 +131,35 @@ exists; otherwise uses the same rows embedded. You should see:
 From wuwei (with this repo next door): `rusty demo-receipt.lisp` there writes
 the fixture and scores it in-process by loading `mingjian.lisp`.
 
+## Install as a verified package
+
+mingjian is a [Rusty package](https://github.com/TheLakeMan/rusty) — a git repo
+with a `package.lisp` manifest — so instead of "clone and trust" you can install
+it in a way you can *check*:
+
+```lisp
+(load "pkg.lisp")                                        ; Rusty's package manager
+(pkg-install "https://github.com/TheLakeMan/mingjian")   ; clone + auto-lock
+(pkg-load "mingjian")                                     ; the audit library
+```
+
+`pkg-install` records a fingerprint — every file with its SHA-256 — the moment
+the clone lands, stored *outside* the package tree. From then on:
+
+- `(mj-self-check)` — has mingjian's own installed code drifted since install
+  day? → `verified`, or `(changed ((file what) …))` naming what moved.
+- `(pkg-verify "mingjian" fp)` — do the installed bytes match a fingerprint the
+  publisher gave you **out of band** (never one shipped in mingjian's own repo)?
+  → `verified` / `changed`.
+
+**What this hardens, exactly.** It hardens *distribution* — whether the
+**auditor's own code** changed since install — which is precisely the
+distinction mingjian is built on: a forged log still replays clean (that's why
+`mj-anchor` exists), and likewise matching code proves *sameness*, never
+*trustworthiness*. It is not a sandbox, and no defense against a determined local
+attacker (who can rewrite the lock) or a hostile publisher (whose out-of-band
+fingerprint you would be trusting).
+
 ## API
 
 | function | what |
@@ -160,6 +189,9 @@ alone.
 | file | what |
 |------|------|
 | `mingjian.lisp` | library — replay verify + agent audit rules |
+| `package.lisp` | Rusty package manifest — `name` / `version` / `main` |
+| `mingjian-pkg.lisp` | package entry (`main`) — absolute-path load + `mj-self-check` |
+| `mingjian-pkg-probe.lisp` | package check — manifest valid + entry loads from a foreign cwd |
 | `mingjian-test.lisp` / `expected_mingjian.txt` | golden suite |
 | `demo-receipt.lisp` | **sandbox audit receipt** (no LLM) |
 | `run_tests.sh` | golden-file runner |
