@@ -81,4 +81,31 @@
      (kg-query '((step-6 tool ?t) (step-6 input ?i))))
 
 (println "")
+(println "── anchoring: replay says consistent; the anchor says it's YOURS ──")
+;; Fixture file under /tmp — mingjian never writes outside it in a test.
+;; save-model embeds no clock, so a run hashes identically on every machine;
+;; that is what lets an anchor be compared at all.
+(define LOG "/tmp/mingjian-anchor-test.json")
+;; Verdicts are either a bare symbol ('verified/'anchored) or a tagged list;
+;; show just the tag, so the 64-char hashes stay out of the golden AND a
+;; wrong verdict prints as itself instead of erroring on nth.
+(define (verdict-tag v) (if (list? v) (nth v 0) v))
+(mj-save LOG RUN)
+(define ANCHOR (mj-anchor LOG))
+(row "16 the anchor is stable across reads     " (equal? ANCHOR (mj-anchor LOG)))
+(row "17 the log you anchored verifies         " (mj-verify-anchored world-step LOG ANCHOR))
+
+;; THE POINT: forge a DIFFERENT run — same physics, same controller, just a
+;; different starting state — and save it over the log. It is internally
+;; consistent, so replay alone declares it verified. It is a perfect forgery
+;; as far as mj-verify-run can ever tell.
+(define FORGED-RUN (mj-run world-step controller '(21) 8))
+(mj-save LOG FORGED-RUN)
+(row "18 a forged log replays perfectly clean  " (mj-verify-run world-step (mj-load LOG)))
+(row "19 ...but it is not the log you anchored " (verdict-tag (mj-check-anchor LOG ANCHOR)))
+(row "20 so the composite refuses to verify it " (verdict-tag (mj-verify-anchored world-step LOG ANCHOR)))
+(file-delete LOG)
+(row "21 a vanished log is named, not ignored  " (mj-check-anchor LOG ANCHOR))
+
+(println "")
 (println "mingjian-test: done")

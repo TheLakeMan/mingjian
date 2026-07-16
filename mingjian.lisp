@@ -83,6 +83,40 @@
 (define (mj-save file run) (save-model file run))
 (define (mj-load file)     (load-model file))
 
+;; ── Anchoring ───────────────────────────────────────────────────────────
+;; The header's honest-scope paragraph, mechanized. Replay proves a log is
+;; CONSISTENT — but a forged log is consistent too: an attacker who rewrites
+;; the commands AND the claim together produces a log that replays perfectly
+;; clean. Replay alone can therefore never tell you it is the log you kept.
+;; An anchor is the missing half: the hash of a saved run, recorded somewhere
+;; the attacker cannot reach.
+;;
+;; WHERE THE ANCHOR LIVES IS THE WHOLE POINT, and it is NOT mingjian's job.
+;; An anchor stored next to the log it anchors is worth nothing — whoever
+;; rewrites one rewrites the other. Put it where they can't: a printout, a
+;; commit in someone else's repo, a second machine, another party's records.
+;; mingjian deliberately does not store it for you; there is no location it
+;; could choose that would be safer than the log's own directory.
+(define (mj-anchor file) (file-hash file))     ; -> hex string, or Nil if unreadable
+
+;; 'anchored | (missing file ...) | (broken file ... anchor ... found ...)
+(define (mj-check-anchor file anchor)
+  (let ((h (file-hash file)))
+    (cond ((nil? h)          (list 'missing 'file file))
+          ((equal? h anchor) 'anchored)
+          (else (list 'broken 'file file 'anchor anchor 'found h)))))
+
+;; The composite, and the ORDER IS LOAD-BEARING: check the anchor FIRST, and
+;; only replay a log that is the one you anchored. Backwards, this reports
+;; 'verified for a forged log — because a forged log replays clean. Same shape
+;; as Rusty's static-gates-first rule: the cheap check that can refuse must run
+;; before the expensive one that can be fooled.
+(define (mj-verify-anchored world-step file anchor)
+  (let ((a (mj-check-anchor file anchor)))
+    (if (equal? a 'anchored)
+        (mj-verify-run world-step (mj-load file))
+        a)))
+
 ;; ── Agent audits (wuwei-shaped rows: (step tool input verdict)) ─────────
 (define (mj-row-step r)    (nth r 0))
 (define (mj-row-tool r)    (nth r 1))

@@ -23,4 +23,12 @@
 14 which steps were rejected?             => (((?s step-2)) ((?s step-4)))
 15 what did step-6 touch?                 => (((?t write-file) (?i "/etc/shadow")))
 
+── anchoring: replay says consistent; the anchor says it's YOURS ──
+16 the anchor is stable across reads      => #t
+17 the log you anchored verifies          => verified
+18 a forged log replays perfectly clean   => verified
+19 ...but it is not the log you anchored  => broken
+20 so the composite refuses to verify it  => broken
+21 a vanished log is named, not ignored   => (missing file "/tmp/mingjian-anchor-test.json")
+
 mingjian-test: done

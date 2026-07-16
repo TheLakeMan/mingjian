@@ -32,8 +32,40 @@ Honest scope — this is exactly as strong as your plant's determinism and no
 stronger. Replay verification proves *log ⇔ claim consistency*; it does not
 stop an attacker from forging a complete, internally-consistent *different*
 log. Anchor the claim (the final record) somewhere they can't rewrite —
-mingjian closes the rest for the anchored run. No cryptography is used or
-pretended.
+mingjian closes the rest for the anchored run.
+
+## Anchoring — replay says *consistent*; the anchor says *yours*
+
+That last paragraph used to be advice. It's now a function.
+
+A forged log replays **clean**. An attacker who rewrites the commands *and* the
+claim together produces a log that is internally consistent, and `mj-verify-run`
+will call it `verified` — correctly, because it *is* consistent. Replay alone
+can never tell you it's the log you kept. The test says so out loud:
+
+```
+18 a forged log replays perfectly clean   => verified
+19 ...but it is not the log you anchored  => broken
+20 so the composite refuses to verify it  => broken
+```
+
+`mj-anchor` hashes a saved run (SHA-256); `mj-verify-anchored` checks the anchor
+**first** and only then replays. That order is load-bearing — reversed, it
+reports `verified` for the forgery, because the forgery replays clean.
+
+```lisp
+(define anchor (mj-anchor "run.json"))      ; keep this somewhere else
+(mj-verify-anchored world-step "run.json" anchor)
+;; => verified | (broken file ... anchor ... found ...) | (missing file ...)
+```
+
+**Where the anchor lives is the whole point, and mingjian does not do it for
+you.** An anchor stored next to the log it anchors is worth nothing — whoever
+rewrites one rewrites the other. Put it where they can't reach: a printout, a
+commit in someone else's repo, a second machine, a counterparty's records. There
+is no location mingjian could pick that would be safer than the log's own
+directory, so it deliberately picks none. The hash is the easy half; keeping it
+out of reach is the half that actually costs you something.
 
 ## The battle-test rule, mechanized
 
@@ -93,9 +125,15 @@ the fixture and scores it in-process by loading `mingjian.lisp`.
 | `mj-verify-trajectory step s0 acts traj` | `'verified` or first divergent tick, named |
 | `mj-verify-run step run` | whole stored record against itself |
 | `mj-save` / `mj-load` | lossless round-trip via Rusty's versioned-JSON `save-model` |
+| `mj-anchor file` | SHA-256 of a saved run — keep it somewhere they can't rewrite |
+| `mj-check-anchor file anchor` | `'anchored` / `(broken …)` / `(missing …)` |
+| `mj-verify-anchored step file anchor` | anchor first, **then** replay — the order matters |
 | `mj-rejections` / `mj-verdict-counts` | wuwei-audit basics, as data |
 | `mj-breaches rows allowed?` | the battle-test rule — `ok` verdicts your policy forbids |
 | `mj-audit->kg!` / `mj-steps-with-verdict` | audits as knowledge-graph triples, queryable |
+
+`mj-anchor` needs Rusty **0.45.0 or newer** (the `file-hash` builtin); the rest
+runs on any 0.29.0+.
 
 Works out of the box with shouzhong's plants (pure `world-step`s and gated
 command buses are exactly what replay verification wants) and wuwei's audit
