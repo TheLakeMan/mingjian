@@ -199,6 +199,11 @@ alone.
 ## License
 
 AGPL-3.0-or-later. Copyright (c) 2026 Nicholas Vermeulen.
-Commercial licensing available on inquiry.
+Commercial licensing available on inquiry — see [COMMERCIAL.md](./COMMERCIAL.md)
+or contact <thelakeman@protonmail.com>.
+
+Contributions require a short license grant that keeps mingjian relicensable as a
+whole — see [CONTRIBUTING.md](./CONTRIBUTING.md) for the CLA and the standards
+every change must meet.
 
 *In memory of my brother.*
