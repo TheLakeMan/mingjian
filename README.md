@@ -11,6 +11,10 @@ of [wuwei](https://github.com/TheLakeMan/wuwei) (gated agents) and
 wuwei decides what may run, shouzhong proves where the plant may go, mingjian
 proves **what actually happened**.
 
+![15-second demo: mj-breaches empty on an honest audit, and returning the forged out-of-policy ok as the smoking gun](demo.gif)
+
+*Live above: `rusty demo-breach.lisp` — deterministic, offline, no LLM.*
+
 ## The claim, precisely
 
 For a **deterministic** plant — a pure `world-step` plus a log of commands —
